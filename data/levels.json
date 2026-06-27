@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "label": "Naturals",
+    "desc": "The 7 natural notes: A B C D E F G.",
+    "noteSet": "natural",
+    "count": 12,
+    "promote": 0.8
+  },
+  {
+    "id": 2,
+    "label": "Sharps",
+    "desc": "Naturals plus the sharps: C# D# F# G# A#.",
+    "noteSet": "sharps",
+    "count": 16,
+    "promote": 0.8
+  },
+  {
+    "id": 3,
+    "label": "Flats",
+    "desc": "The same accidentals read as flats: Db Eb Gb Ab Bb.",
+    "noteSet": "flats",
+    "count": 16,
+    "promote": 0.8
+  },
+  {
+    "id": 4,
+    "label": "Chromatic",
+    "desc": "All 12 notes — the full alphabet of the fretboard.",
+    "noteSet": "chromatic",
+    "count": 20,
+    "promote": 0.85
+  }
+]

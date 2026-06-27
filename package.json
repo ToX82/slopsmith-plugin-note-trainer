@@ -1,0 +1,9 @@
+{
+  "name": "slopsmith-plugin-note-trainer",
+  "private": true,
+  "scripts": {
+    "test:js": "node --test tests/js/note-math.test.js tests/js/game.test.js tests/js/ear.test.js tests/js/achievements.test.js tests/js/yin.test.js",
+    "test:py": "pytest",
+    "test": "node --test tests/js/note-math.test.js tests/js/game.test.js tests/js/ear.test.js tests/js/achievements.test.js tests/js/yin.test.js && pytest"
+  }
+}

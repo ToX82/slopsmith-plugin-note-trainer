@@ -1,0 +1,97 @@
+<div class="note-trainer-settings">
+  <style>
+    .note-trainer-settings {
+      --nts-text: #f8fafc; --nts-dim: #cbd5e1; --nts-muted: #94a3b8;
+      --nts-inset: #0f1320; --nts-line: rgba(148,163,184,0.34);
+      --nts-accent: #f0b429; --nts-accent-deep: #b45309;
+      --nts-danger: #ef4444; --nts-danger-edge: #fca5a5;
+      --nts-ok: #22c55e;
+      max-width: 640px; display: flex; flex-direction: column; gap: 18px;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 13px; color: var(--nts-dim);
+    }
+    .note-trainer-settings h3 { margin: 0 0 6px; font-size: 15px; color: var(--nts-text); letter-spacing: -0.01em; }
+    .note-trainer-settings p { margin: 0; line-height: 1.55; color: var(--nts-muted); }
+    .note-trainer-settings p strong { color: var(--nts-dim); }
+    .note-trainer-settings .nts-card {
+      padding: 16px; border-radius: 12px;
+      background: rgba(20,24,36,0.6); border: 1px solid rgba(148,163,184,0.16);
+    }
+    .note-trainer-settings label { display: flex; flex-direction: column; gap: 7px; }
+    .note-trainer-settings label > span { font-size: 11px; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--nts-muted); }
+    .note-trainer-settings select {
+      min-height: 40px; padding: 0 10px; border-radius: 8px;
+      border: 1px solid var(--nts-line); background: var(--nts-inset); color: var(--nts-text);
+      font: inherit; font-size: 13px;
+    }
+    .note-trainer-settings select:focus { outline: none; border-color: var(--nts-accent); box-shadow: 0 0 0 3px rgba(240,180,41,0.28); }
+    .note-trainer-settings .nts-actions { display: flex; gap: 10px; align-items: center; }
+    .note-trainer-settings button {
+      min-height: 38px; padding: 0 16px; border-radius: 8px; cursor: pointer;
+      font: inherit; font-weight: 700; font-size: 13px;
+    }
+    .note-trainer-settings .nts-danger {
+      border: 1px solid var(--nts-danger); background: rgba(239,68,68,0.12); color: var(--nts-danger-edge);
+    }
+    .note-trainer-settings .nts-danger:hover { background: rgba(239,68,68,0.2); }
+    .note-trainer-settings .nts-status { color: var(--nts-ok); font-size: 12px; min-height: 16px; }
+  </style>
+
+  <div class="nts-card">
+    <h3>Note Trainer</h3>
+    <p>Practice recognizing the notes on the guitar and bass fretboard. Open
+      <strong>Note Trainer</strong> from the menu, pick a game, then play the
+      requested note on the indicated string — the microphone checks in real
+      time whether it's correct.</p>
+  </div>
+
+  <label class="nts-card">
+    <span>Frets per string (fretboard range)</span>
+    <select id="note-trainer-maxfret">
+      <option value="12">0–12 (extended first position)</option>
+      <option value="15">0–15</option>
+      <option value="22">0–22 (full neck)</option>
+      <option value="24">0–24</option>
+    </select>
+  </label>
+
+  <div class="nts-actions">
+    <button id="note-trainer-reset" type="button" class="nts-danger">Reset progress</button>
+    <span id="note-trainer-settings-status" class="nts-status"></span>
+  </div>
+</div>
+
+<script>
+(function () {
+  const API = '/api/plugins/note-trainer/config';
+  const maxFretEl = document.getElementById('note-trainer-maxfret');
+  const resetEl = document.getElementById('note-trainer-reset');
+  const statusEl = document.getElementById('note-trainer-settings-status');
+
+  function flash(msg) {
+    if (!statusEl) return;
+    statusEl.textContent = msg;
+    setTimeout(() => { statusEl.textContent = ''; }, 2000);
+  }
+
+  fetch(API).then(r => r.json()).then(cfg => {
+    if (maxFretEl && cfg && cfg.maxFret) maxFretEl.value = String(cfg.maxFret);
+  }).catch(() => {});
+
+  if (maxFretEl) maxFretEl.addEventListener('change', () => {
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ maxFret: parseInt(maxFretEl.value, 10) }),
+    }).then(() => flash('Saved')).catch(() => {});
+  });
+
+  if (resetEl) resetEl.addEventListener('click', () => {
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ bestScores: {}, medals: {}, levelStrings: {}, stats: {}, achievements: [], lifetime: { correct: 0, wrong: 0, sessions: 0 } }),
+    }).then(() => flash('Progress reset')).catch(() => {});
+  });
+})();
+</script>

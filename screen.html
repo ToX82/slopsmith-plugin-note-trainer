@@ -1,0 +1,555 @@
+<div id="note-trainer-root" class="note-trainer-root is-game-fret">
+  <style>
+    /* ════════════════════════════════════════════════════════════════
+       Note Trainer — minimal design system.
+       Scoped under .note-trainer-root. Neutral, flat, single restrained
+       accent — aligned with slopsmith's overall UI language.
+       ════════════════════════════════════════════════════════════════ */
+    .note-trainer-root {
+      color-scheme: dark;
+      --nt-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --nt-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+
+      /* Surface ramp (neutral) */
+      --nt-bg-0: #0a0b10; --nt-bg-1: #0c0e14;
+      --nt-surface-1: #14161d; --nt-surface-2: #181b23; --nt-surface-3: #1e212b;
+      --nt-inset: #0e1016; --nt-inset-deep: #0a0b10;
+
+      /* Lines */
+      --nt-line-1: rgba(148, 163, 184, 0.10);
+      --nt-line-2: rgba(148, 163, 184, 0.20);
+
+      /* Text */
+      --nt-text: #e8eaf0; --nt-dim: #aeb4c0; --nt-muted: #878d9c; --nt-faint: #5c6273;
+
+      /* Single restrained accent (slopsmith-blue) */
+      --nt-accent: #4f86e6; --nt-accent-edge: #74a0ee; --nt-accent-deep: #2f5db8;
+      --nt-accent-soft: rgba(79, 134, 230, 0.13);
+
+      /* Semantic (calm) */
+      --nt-ok: #22c55e; --nt-ok-edge: #4ade80;
+      --nt-err: #ef4444; --nt-err-edge: #f87171;
+      --nt-hint: #d97706; --nt-hint-edge: #f59e0b;
+
+      /* Radii */
+      --nt-r-sm: 8px; --nt-r-md: 11px; --nt-r-lg: 14px; --nt-r-pill: 999px;
+
+      /* Elevation (very subtle) */
+      --nt-shadow-1: 0 1px 2px rgba(0,0,0,0.3);
+
+      /* Focus ring */
+      --nt-ring: 0 0 0 2px rgba(79, 134, 230, 0.4);
+
+      /* Motion */
+      --nt-dur-fast: .12s; --nt-dur-base: .18s; --nt-dur-slow: .3s;
+      --nt-ease: cubic-bezier(.2, .7, .2, 1);
+
+      height: 100vh;
+      padding: 80px 20px 20px;
+      box-sizing: border-box;
+      display: flex; flex-direction: column; gap: 12px;
+      color: var(--nt-dim);
+      font-family: var(--nt-font);
+      background: linear-gradient(180deg, var(--nt-bg-0), var(--nt-bg-1));
+      overflow-y: auto;
+    }
+    .note-trainer-root * { box-sizing: border-box; }
+
+    .nt-sprite { position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none; }
+    .nt-ic { width: 1em; height: 1em; display: inline-block; vertical-align: -0.14em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .nt-ic.is-fill { fill: currentColor; stroke: none; }
+
+    /* ── Header / identity ─────────────────────────────────── */
+    .nt-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .nt-brand { display: flex; align-items: center; gap: 12px; }
+    .nt-brand-mark {
+      width: 34px; height: 34px; flex: 0 0 auto; border-radius: var(--nt-r-sm);
+      display: grid; place-items: center; color: var(--nt-accent-edge);
+      background: var(--nt-inset); border: 1px solid var(--nt-line-2);
+    }
+    .nt-brand-mark .nt-ic { width: 19px; height: 19px; }
+    .note-trainer-root h1 { margin: 0; font-size: 17px; letter-spacing: -0.01em; color: var(--nt-text); font-weight: 650; }
+    .nt-version { margin-left: 6px; font-size: 11px; color: var(--nt-faint); font-weight: 500; }
+    .nt-tagline { margin: 1px 0 0; font-size: 12px; color: var(--nt-muted); }
+    .nt-header-right { display: flex; align-items: center; gap: 12px; }
+    .nt-global-progress { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: var(--nt-r-pill); background: var(--nt-inset); border: 1px solid var(--nt-line-1); font-size: 12px; color: var(--nt-muted); }
+    .nt-global-progress b { color: var(--nt-text); font-variant-numeric: tabular-nums; font-weight: 600; }
+    .nt-global-progress .nt-ic { width: 13px; height: 13px; color: var(--nt-muted); }
+
+    .nt-panel { background: var(--nt-surface-1); border: 1px solid var(--nt-line-1); border-radius: var(--nt-r-lg); padding: 15px; }
+
+    /* ── Buttons ───────────────────────────────────────────── */
+    .nt-btn {
+      min-height: 40px; padding: 0 18px; border-radius: var(--nt-r-sm);
+      border: 1px solid var(--nt-accent-edge);
+      background: var(--nt-accent); color: #0a0d14;
+      font-weight: 600; font-size: 13px; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      transition: filter var(--nt-dur-fast) var(--nt-ease), background var(--nt-dur-fast);
+    }
+    .nt-btn .nt-ic { width: 16px; height: 16px; }
+    .nt-btn:hover { filter: brightness(1.08); }
+    .nt-btn:focus-visible, .note-trainer-root select:focus-visible, .note-trainer-root button:focus-visible { outline: none; box-shadow: var(--nt-ring); }
+    .nt-btn.secondary { background: var(--nt-inset); border-color: var(--nt-line-2); color: var(--nt-dim); font-weight: 550; }
+    .nt-btn.secondary:hover { background: var(--nt-surface-3); color: var(--nt-text); filter: none; }
+
+    /* ── Setup: hub ────────────────────────────────────────── */
+    .nt-section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--nt-muted); }
+    .nt-section-label span { font-weight: 400; text-transform: none; color: var(--nt-faint); margin-left: 6px; }
+
+    .nt-game-picker { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    .nt-game-card {
+      position: relative; flex: 1 1 240px; min-width: 240px; text-align: left;
+      padding: 13px 14px; border-radius: var(--nt-r-md);
+      border: 1px solid var(--nt-line-1); background: var(--nt-surface-1);
+      color: var(--nt-dim); cursor: pointer; overflow: hidden;
+      transition: border-color var(--nt-dur-base), background var(--nt-dur-base);
+    }
+    .nt-game-card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 2px; background: var(--nt-line-2); transition: background var(--nt-dur-base); }
+    .nt-game-card:hover { border-color: var(--nt-line-2); background: var(--nt-surface-2); }
+    .nt-game-card.active { border-color: var(--nt-accent-edge); background: var(--nt-surface-2); }
+    .nt-game-card.active::before { background: var(--nt-accent); }
+    .nt-gc-head { display: flex; align-items: center; gap: 10px; }
+    .nt-gc-icon { width: 30px; height: 30px; flex: 0 0 auto; border-radius: var(--nt-r-sm); display: grid; place-items: center; color: var(--nt-muted); background: var(--nt-inset); border: 1px solid var(--nt-line-1); }
+    .nt-game-card.active .nt-gc-icon { color: var(--nt-accent-edge); border-color: var(--nt-line-2); }
+    .nt-gc-icon .nt-ic { width: 17px; height: 17px; }
+    .nt-gc-title { display: block; font-weight: 600; font-size: 13.5px; color: var(--nt-text); letter-spacing: -0.005em; }
+    .nt-gc-medal { margin-left: auto; font-size: 16px; }
+    .nt-gc-desc { display: block; font-size: 12px; color: var(--nt-muted); margin-top: 8px; line-height: 1.45; }
+    .nt-gc-foot { display: flex; align-items: center; gap: 10px; margin-top: 10px; min-height: 15px; }
+    .nt-gc-best { font-size: 11px; color: var(--nt-muted); font-variant-numeric: tabular-nums; display: inline-flex; align-items: center; gap: 4px; }
+    .nt-gc-best .nt-ic { width: 12px; height: 12px; color: var(--nt-muted); }
+    .nt-gc-empty { font-size: 11px; color: var(--nt-faint); }
+
+    .nt-game-panel { display: none; animation: nt-fade-in var(--nt-dur-base) var(--nt-ease); }
+    .note-trainer-root.is-game-fret #nt-panel-fret { display: block; }
+    .note-trainer-root.is-game-ear  #nt-panel-ear  { display: block; }
+
+    .nt-setup-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 11px; }
+    .nt-field { display: flex; flex-direction: column; gap: 5px; }
+    .nt-field > span { font-size: 11px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--nt-muted); }
+    .note-trainer-root select {
+      min-height: 38px; padding: 0 10px; border-radius: var(--nt-r-sm);
+      border: 1px solid var(--nt-line-2); background: var(--nt-inset); color: var(--nt-text); width: 100%;
+      font-family: var(--nt-font); font-size: 13px;
+    }
+    .note-trainer-root select:hover { border-color: var(--nt-accent-edge); }
+    .note-trainer-root option { background: var(--nt-inset); color: var(--nt-text); }
+
+    /* ── Fretboard level cards ─────────────────────────────── */
+    .nt-levels { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 11px; }
+    .nt-level-card {
+      position: relative; flex: 1 1 210px; min-width: 210px; text-align: left;
+      padding: 12px 14px; border-radius: var(--nt-r-md); border: 1px solid var(--nt-line-1);
+      background: var(--nt-surface-1); color: var(--nt-dim); cursor: pointer; overflow: hidden;
+      transition: border-color var(--nt-dur-base), background var(--nt-dur-base);
+    }
+    .nt-level-card::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 2px; background: var(--nt-line-2); transition: background var(--nt-dur-base); }
+    .nt-level-card:hover { border-color: var(--nt-line-2); background: var(--nt-surface-2); }
+    .nt-level-card.active { border-color: var(--nt-accent-edge); background: var(--nt-accent-soft); }
+    .nt-level-card.active::before { background: var(--nt-accent); }
+    .nt-level-card .nt-lc-title { display: block; font-weight: 600; font-size: 13.5px; color: var(--nt-text); letter-spacing: -0.005em; }
+    .nt-level-card .nt-lc-desc { display: block; font-size: 11.5px; color: var(--nt-muted); margin-top: 3px; line-height: 1.4; }
+    .nt-lc-medal { position: absolute; top: 10px; right: 12px; font-size: 17px; line-height: 1; }
+    .nt-lc-notes { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 9px; }
+    .nt-lc-chip { font-size: 10.5px; padding: 1px 7px; border-radius: var(--nt-r-sm); background: var(--nt-accent-soft); color: var(--nt-accent-edge); font-family: var(--nt-mono); font-weight: 500; }
+    .nt-lc-mastery { display: flex; flex-wrap: wrap; gap: 5px 9px; margin-top: 10px; font-family: var(--nt-mono); font-size: 11px; }
+    .nt-lc-ms { color: var(--nt-faint); white-space: nowrap; }
+    .nt-lc-ms b { color: var(--nt-dim); font-weight: 600; }
+    .nt-lc-ms .s-on { color: var(--nt-hint-edge); }
+    .nt-lc-ms .s-off { color: #39404d; }
+    .nt-lc-foot { display: flex; align-items: center; gap: 9px; margin-top: 10px; }
+    .nt-lc-bar { flex: 1; height: 6px; border-radius: var(--nt-r-sm); background: var(--nt-inset-deep); overflow: hidden; border: 1px solid var(--nt-line-1); }
+    .nt-lc-bar > i { display: block; height: 100%; background: var(--nt-ok); transition: width .5s var(--nt-ease); }
+    .nt-lc-pct { font-size: 11px; color: var(--nt-dim); font-variant-numeric: tabular-nums; min-width: 30px; text-align: right; font-weight: 600; }
+    .nt-lc-best { font-size: 11px; color: var(--nt-muted); font-variant-numeric: tabular-nums; white-space: nowrap; display: inline-flex; align-items: center; gap: 3px; }
+    .nt-lc-best .nt-ic { width: 11px; height: 11px; color: var(--nt-muted); }
+    .nt-level-card.free::before { background: var(--nt-line-2); }
+    .nt-level-card.weak::before { background: var(--nt-hint); }
+    .nt-level-card.weak:hover { border-color: var(--nt-hint-edge); }
+    .nt-level-card.weak.active { border-color: var(--nt-hint-edge); background: rgba(217,119,6,0.12); }
+    .nt-level-card.weak.active::before { background: var(--nt-hint-edge); }
+
+    /* ── Per-level string drill (mini fretboard) ───────────── */
+    .nt-drill { margin-top: 11px; padding: 12px 14px; border-radius: var(--nt-r-md); border: 1px solid var(--nt-line-2); background: var(--nt-surface-2); }
+    .nt-drill-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+    .nt-drill-head .t { font-size: 11px; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--nt-muted); }
+    .nt-drill-head .t span { color: var(--nt-faint); font-weight: 400; text-transform: none; margin-left: 6px; }
+    .nt-drill-all { min-height: 28px; padding: 0 12px; border-radius: var(--nt-r-sm); border: 1px solid var(--nt-line-2); background: var(--nt-inset); color: var(--nt-dim); font-size: 11.5px; font-weight: 500; cursor: pointer; transition: border-color var(--nt-dur-fast), color var(--nt-dur-fast); }
+    .nt-drill-all:hover { border-color: var(--nt-accent-edge); color: var(--nt-text); }
+    .nt-fb { display: flex; flex-direction: column; gap: 3px; }
+    .nt-fb-row { display: flex; align-items: center; gap: 11px; height: 24px; cursor: pointer; user-select: none; }
+    .nt-fb-name { width: 24px; text-align: center; font-family: var(--nt-mono); font-weight: 600; font-size: 12px; color: var(--nt-faint); transition: color var(--nt-dur-fast); }
+    .nt-fb-wire { position: relative; flex: 1; height: 2px; border-radius: 2px; background: var(--nt-line-2); transition: background var(--nt-dur-fast); }
+    .nt-fb-dot { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); width: 12px; height: 12px; border-radius: 50%; background: var(--nt-inset-deep); border: 2px solid var(--nt-line-2); transition: background var(--nt-dur-fast), border-color var(--nt-dur-fast); }
+    .nt-fb-row:hover .nt-fb-wire { background: var(--nt-accent-edge); }
+    .nt-fb-row.on .nt-fb-name { color: var(--nt-text); }
+    .nt-fb-row.on .nt-fb-wire { background: var(--nt-accent-edge); }
+    .nt-fb-row.on .nt-fb-dot { background: var(--nt-ok); border-color: var(--nt-ok-edge); }
+
+    /* ── Start row ─────────────────────────────────────────── */
+    .nt-start-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+    .nt-setup-hint { font-size: 12px; color: var(--nt-muted); display: inline-flex; align-items: center; gap: 6px; }
+    .nt-setup-hint .nt-ic { width: 14px; height: 14px; color: var(--nt-muted); }
+
+    .nt-mic-error { margin-top: 6px; padding: 10px 12px; border-radius: var(--nt-r-sm); border: 1px solid var(--nt-err); background: rgba(239,68,68,0.10); color: #fecaca; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+    .nt-mic-error .nt-ic { width: 16px; height: 16px; color: var(--nt-err-edge); flex: 0 0 auto; }
+
+    /* ── Play view (shared shell) ──────────────────────────── */
+    #nt-play, #nt-ear { display: none; flex-direction: column; gap: 12px; flex: 1; min-height: 0; }
+    .note-trainer-root.is-playing #nt-play { display: flex; animation: nt-shell-in var(--nt-dur-slow) var(--nt-ease); }
+    .note-trainer-root.is-ear #nt-ear { display: flex; animation: nt-shell-in var(--nt-dur-slow) var(--nt-ease); }
+    .note-trainer-root.is-playing #nt-setup, .note-trainer-root.is-ear #nt-setup { display: none; }
+    @keyframes nt-shell-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    @keyframes nt-fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) {
+      .note-trainer-root.is-playing #nt-play, .note-trainer-root.is-ear #nt-ear, .nt-game-panel { animation: none; }
+    }
+
+    .nt-hud { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .nt-prompt { flex: 1 1 260px; }
+    .nt-prompt .nt-prompt-lead { font-size: 12px; color: var(--nt-muted); }
+    .nt-prompt .nt-note { font-size: 32px; font-weight: 650; color: var(--nt-text); line-height: 1.1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+    .nt-prompt .nt-note .nt-on { font-size: 15px; font-weight: 500; color: var(--nt-accent-edge); }
+    .nt-stat { text-align: center; min-width: 58px; }
+    .nt-stat .nt-stat-val { font-size: 19px; font-weight: 650; color: var(--nt-text); font-variant-numeric: tabular-nums; line-height: 1.15; }
+    .nt-stat .nt-stat-lbl { font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--nt-muted); margin-top: 1px; }
+    .nt-stat.combo .nt-stat-val { color: var(--nt-hint-edge); }
+    .nt-stat .nt-stat-val.pop { animation: nt-score-pop .35s var(--nt-ease); }
+    @keyframes nt-score-pop { 0% { transform: scale(1); } 40% { transform: scale(1.18); color: var(--nt-ok); } 100% { transform: scale(1); } }
+    @media (prefers-reduced-motion: reduce) { .nt-stat .nt-stat-val.pop { animation: none; } }
+
+    .nt-detected { font-family: var(--nt-mono); font-size: 12px; color: var(--nt-muted); min-height: 18px; }
+    .nt-detected b { color: var(--nt-text); font-weight: 600; }
+
+    #nt-fretboard { width: 100%; }
+    .note-trainer-fb-svg { width: 100%; height: auto; display: block; }
+
+    .nt-feedback { min-height: 22px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 7px; }
+    .nt-feedback .nt-ic { width: 15px; height: 15px; flex: 0 0 auto; }
+    .nt-feedback.ok { color: var(--nt-ok-edge); }
+    .nt-feedback.ok .nt-ic { color: var(--nt-ok-edge); }
+    .nt-feedback.err { color: var(--nt-err-edge); }
+    .nt-feedback.err .nt-ic { color: var(--nt-err-edge); }
+    .nt-feedback.hint { color: var(--nt-hint-edge); }
+    .nt-feedback.hint .nt-ic { color: var(--nt-hint-edge); }
+
+    /* ── Fretboard SVG primitives ──────────────────────────── */
+    .note-trainer-fb-board { fill: #191512; stroke: #2a241e; stroke-width: 1; }
+    .note-trainer-fb-fret { stroke: #3a3f4a; stroke-width: 2; }
+    .note-trainer-fb-nut { stroke: #c8ced8; stroke-width: 5; }
+    .note-trainer-fb-string { stroke: #aeb4c2; }
+    .note-trainer-fb-inlay { fill: rgba(226,232,240,0.16); }
+    .note-trainer-fb-fretnum { fill: var(--nt-faint); font-size: 11px; text-anchor: middle; font-family: var(--nt-mono); }
+    .note-trainer-fb-strlabel { fill: var(--nt-muted); font-size: 12px; font-weight: 600; text-anchor: start; font-family: var(--nt-mono); transition: fill var(--nt-dur-base); }
+    .note-trainer-fb-strlabel.is-target { fill: var(--nt-accent-edge); }
+    .note-trainer-fb-band { fill: var(--nt-accent); transition: opacity var(--nt-dur-base); }
+    .note-trainer-fb-mark circle { stroke-width: 2; }
+    .note-trainer-fb-marktext { fill: #fff; font-size: 11px; font-weight: 700; text-anchor: middle; font-family: var(--nt-mono); pointer-events: none; }
+    .note-trainer-fb-mark.is-hint circle { fill: rgba(245,158,11,0.22); stroke: var(--nt-hint-edge); }
+    .note-trainer-fb-mark.is-detected circle { fill: rgba(79,134,230,0.30); stroke: var(--nt-accent-edge); }
+    .note-trainer-fb-mark.is-ok circle { fill: rgba(34,197,94,0.40); stroke: var(--nt-ok-edge); }
+    .note-trainer-fb-mark.is-err circle { fill: rgba(239,68,68,0.40); stroke: var(--nt-err-edge); }
+    .note-trainer-fb-mark.is-flash { animation: nt-pop .25s var(--nt-ease); transform-box: fill-box; transform-origin: center; }
+    @keyframes nt-pop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .note-trainer-fb-mark.is-flash { animation: none; } }
+
+    /* ── Ear training ──────────────────────────────────────── */
+    .nt-ear-setup { display: flex; flex-direction: column; gap: 12px; }
+    .nt-ear-diff { display: inline-flex; gap: 3px; padding: 3px; border-radius: var(--nt-r-md); background: var(--nt-inset); border: 1px solid var(--nt-line-1); align-self: flex-start; }
+    .nt-ear-diff .nt-seg { min-height: 32px; padding: 0 16px; border-radius: var(--nt-r-sm); border: none; background: transparent; color: var(--nt-muted); font-weight: 550; font-size: 12.5px; cursor: pointer; transition: background var(--nt-dur-fast), color var(--nt-dur-fast); }
+    .nt-ear-diff .nt-seg:hover { color: var(--nt-text); }
+    .nt-ear-diff .nt-seg.active { background: var(--nt-surface-3); color: var(--nt-text); }
+    .nt-ear-intro { margin: 0; font-size: 12.5px; color: var(--nt-muted); line-height: 1.55; }
+    .nt-ear-mastery { display: flex; flex-direction: column; gap: 6px; }
+    .nt-em-head { font-size: 11px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.05em; color: var(--nt-muted); display: flex; justify-content: space-between; align-items: baseline; }
+    .nt-em-head .nt-em-hint { font-weight: 500; text-transform: none; letter-spacing: 0; }
+    .nt-em-row { display: grid; grid-template-columns: 42px 1fr 34px; gap: 9px; align-items: center; }
+    .nt-em-abbr { font-family: var(--nt-mono); font-size: 12px; font-weight: 700; color: var(--nt-text); }
+    .nt-em-bar { height: 7px; border-radius: 999px; background: var(--nt-inset); border: 1px solid var(--nt-line-1); overflow: hidden; }
+    .nt-em-fill { height: 100%; border-radius: 999px; background: var(--nt-accent); transition: width var(--nt-dur-slow) var(--nt-ease); }
+    .nt-em-fill.is-weak { background: var(--nt-err); }
+    .nt-em-fill.is-mid { background: var(--nt-hint-edge); }
+    .nt-em-fill.is-strong { background: var(--nt-ok); }
+    .nt-em-pct { font-size: 11.5px; font-weight: 600; color: var(--nt-muted); text-align: right; }
+    .nt-em-pct.is-empty { color: var(--nt-line-2); }
+
+    /* Toggle switch (used for the ear-training reference-note option). */
+    .nt-toggle { display: flex; align-items: flex-start; gap: 11px; cursor: pointer; user-select: none; max-width: 460px; }
+    .nt-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+    .nt-toggle-track { flex: 0 0 auto; position: relative; width: 38px; height: 22px; margin-top: 1px; border-radius: var(--nt-r-pill); background: var(--nt-inset-deep); border: 1px solid var(--nt-line-2); transition: background var(--nt-dur-fast), border-color var(--nt-dur-fast); }
+    .nt-toggle-thumb { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--nt-muted); transition: transform var(--nt-dur-base) var(--nt-ease), background var(--nt-dur-fast); }
+    .nt-toggle input:checked + .nt-toggle-track { background: var(--nt-accent-soft); border-color: var(--nt-accent-edge); }
+    .nt-toggle input:checked + .nt-toggle-track .nt-toggle-thumb { transform: translateX(16px); background: var(--nt-accent-edge); }
+    .nt-toggle input:focus-visible + .nt-toggle-track { box-shadow: var(--nt-ring); }
+    .nt-toggle-text { display: flex; flex-direction: column; gap: 2px; }
+    .nt-toggle-title { font-size: 12.5px; font-weight: 600; color: var(--nt-text); }
+    .nt-toggle-desc { font-size: 11.5px; color: var(--nt-muted); line-height: 1.4; }
+
+    .nt-ear-stage { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px 18px; }
+    .nt-ear-home { font-size: 12.5px; color: var(--nt-muted); display: inline-flex; align-items: center; gap: 8px; }
+    .nt-ear-home b { font-family: var(--nt-mono); font-size: 14px; font-weight: 600; color: var(--nt-text); }
+    .nt-ear-ask { font-size: 12.5px; color: var(--nt-muted); }
+
+    /* Ear viz: a quiet circle that lights up + ripples while a note sounds. */
+    .nt-ear-viz { position: relative; width: 116px; height: 116px; display: grid; place-items: center; }
+    .nt-viz-ring { position: absolute; inset: 0; margin: auto; width: 60px; height: 60px; border-radius: 50%; border: 1px solid var(--nt-line-2); opacity: 0; }
+    .nt-viz-core { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; color: var(--nt-muted); background: var(--nt-inset); border: 1px solid var(--nt-line-2); transition: color var(--nt-dur-base), border-color var(--nt-dur-base); }
+    .nt-viz-core .nt-ic { width: 24px; height: 24px; }
+    .nt-ear-viz.is-sounding .nt-viz-core { color: var(--nt-accent-edge); border-color: var(--nt-accent-edge); }
+    .nt-ear-viz.is-sounding .nt-viz-ring { border-color: var(--nt-accent-edge); animation: nt-viz-ripple 1.6s var(--nt-ease) infinite; }
+    .nt-ear-viz.is-sounding .nt-viz-ring:nth-child(2) { animation-delay: .53s; }
+    .nt-ear-viz.is-sounding .nt-viz-ring:nth-child(3) { animation-delay: 1.06s; }
+    @keyframes nt-viz-ripple { 0% { width: 60px; height: 60px; opacity: .5; } 100% { width: 116px; height: 116px; opacity: 0; } }
+    @media (prefers-reduced-motion: reduce) { .nt-ear-viz.is-sounding .nt-viz-ring { animation: none; opacity: 0; } .nt-ear-viz.is-sounding .nt-viz-core { color: var(--nt-accent-edge); border-color: var(--nt-accent-edge); } }
+
+    .nt-ear-choices { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; max-width: 540px; }
+    .nt-choice {
+      min-width: 58px; min-height: 52px; padding: 0 16px; border-radius: var(--nt-r-sm);
+      border: 1px solid var(--nt-line-2); background: var(--nt-inset); color: var(--nt-text);
+      font-family: var(--nt-mono); font-size: 18px; font-weight: 600; cursor: pointer;
+      transition: border-color var(--nt-dur-fast), background var(--nt-dur-fast);
+    }
+    .nt-choice:hover:not(:disabled) { border-color: var(--nt-accent-edge); background: var(--nt-surface-3); }
+    .nt-choice:disabled { cursor: default; }
+    .nt-choice.correct { background: rgba(34,197,94,0.16); border-color: var(--nt-ok); }
+    .nt-choice.wrong { background: rgba(239,68,68,0.16); border-color: var(--nt-err); }
+    .nt-choice.is-interval { font-size: 13.5px; font-weight: 650; min-width: 96px; letter-spacing: -0.01em; }
+    .nt-choice.is-interval .nt-abbr { display: block; font-size: 16px; font-weight: 700; margin-bottom: 2px; color: var(--nt-text); }
+    .nt-choice.is-interval .nt-full { font-size: 11.5px; font-weight: 500; color: var(--nt-muted); }
+    .nt-choice.is-interval.correct .nt-full { color: var(--nt-ok-edge); }
+
+    /* ── Interval theory cheat-sheet (interval mode only) ──── */
+    .nt-ear-theory { width: 100%; max-width: 540px; margin-top: 4px; padding: 12px 14px; border-radius: var(--nt-r-md); background: var(--nt-inset); border: 1px solid var(--nt-line-1); }
+    .nt-th-head { font-size: 11px; font-weight: 650; text-transform: uppercase; letter-spacing: 0.05em; color: var(--nt-muted); margin-bottom: 8px; }
+    .nt-th-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+    .nt-th-row { display: flex; gap: 10px; align-items: flex-start; }
+    .nt-th-abbr { flex: 0 0 auto; min-width: 30px; text-align: center; padding: 2px 6px; border-radius: var(--nt-r-sm); background: var(--nt-surface-3); border: 1px solid var(--nt-line-2); font-family: var(--nt-mono); font-size: 12.5px; font-weight: 700; color: var(--nt-text); }
+    .nt-th-body { display: flex; flex-direction: column; gap: 1px; line-height: 1.4; }
+    .nt-th-name { font-size: 12.5px; font-weight: 600; color: var(--nt-text); }
+    .nt-th-desc { font-size: 12px; color: var(--nt-muted); }
+    .nt-th-song { font-size: 11.5px; color: var(--nt-accent-edge); }
+
+    /* ── Results overlay ───────────────────────────────────── */
+    .nt-results { position: fixed; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; background: rgba(2,6,23,0.7); backdrop-filter: blur(4px); }
+    .nt-results.open { display: flex; }
+    .nt-results-card { position: relative; width: min(420px, 92vw); text-align: center; }
+    .nt-results.open .nt-results-card { animation: nt-results-in var(--nt-dur-slow) var(--nt-ease); }
+    @keyframes nt-results-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .nt-medal { font-size: 48px; margin: 0 0 4px; line-height: 1; }
+    .nt-results-card h2 { margin: 0 0 4px; font-size: 22px; color: var(--nt-text); font-weight: 650; letter-spacing: -0.01em; }
+    .nt-results-stats { display: flex; justify-content: center; gap: 20px; margin: 14px 0; }
+    .nt-results-msg { font-size: 12.5px; color: var(--nt-muted); min-height: 18px; }
+    .nt-results-actions { display: flex; gap: 9px; justify-content: center; margin-top: 6px; }
+    @media (prefers-reduced-motion: reduce) { .nt-results.open .nt-results-card { animation: none; } }
+
+    /* ── Toasts (achievement unlocks) ──────────────────────── */
+    .nt-toasts { position: fixed; right: 18px; bottom: 18px; z-index: 60; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .nt-toast { pointer-events: auto; min-width: 220px; max-width: 320px; padding: 11px 14px; border-radius: var(--nt-r-md); background: var(--nt-surface-2); border: 1px solid var(--nt-accent-edge); box-shadow: 0 6px 20px rgba(0,0,0,0.4); animation: nt-toast-in .3s var(--nt-ease); }
+    .nt-toast.is-out { animation: nt-toast-out .3s var(--nt-ease) forwards; }
+    .nt-toast .nt-toast-title { font-size: 13px; font-weight: 650; color: var(--nt-text); display: flex; align-items: center; gap: 7px; }
+    .nt-toast .nt-toast-desc { font-size: 11.5px; color: var(--nt-muted); margin-top: 2px; line-height: 1.4; }
+    @keyframes nt-toast-in { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+    @keyframes nt-toast-out { to { opacity: 0; transform: translateX(20px); } }
+    @media (prefers-reduced-motion: reduce) { .nt-toast { animation: none; } .nt-toast.is-out { animation: none; opacity: 0; } }
+
+    /* Combo escalation — the stat warms (glow) on a streak and burns hotter from a 6-combo. */
+    .nt-stat.combo.is-hot .nt-stat-val { text-shadow: 0 0 8px rgba(245,158,11,0.45); }
+    .nt-stat.combo.is-blazing .nt-stat-val { color: var(--nt-err-edge); text-shadow: 0 0 10px rgba(248,113,113,0.5); }
+
+    @media (max-width: 620px) {
+      .nt-prompt .nt-note { font-size: 26px; }
+      .nt-game-card, .nt-level-card { flex: 1 1 100%; }
+    }
+  </style>
+
+  <!-- SVG icon sprite (reused via <use href="#nt-i-*">) -->
+  <svg class="nt-sprite" aria-hidden="true">
+    <symbol id="nt-i-play" viewBox="0 0 24 24"><polygon class="is-fill" points="7 4 20 12 7 20"/></symbol>
+    <symbol id="nt-i-exit" viewBox="0 0 24 24"><path d="M20 12H5"/><path d="M12 19l-7-7 7-7"/></symbol>
+    <symbol id="nt-i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></symbol>
+    <symbol id="nt-i-sound" viewBox="0 0 24 24"><path d="M11 5L6 9H3v6h3l5 4z"/><path d="M16 9a4 4 0 0 1 0 6"/><path d="M19 7a7 7 0 0 1 0 10"/></symbol>
+    <symbol id="nt-i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></symbol>
+    <symbol id="nt-i-replay" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></symbol>
+    <symbol id="nt-i-fire" viewBox="0 0 24 24"><path class="is-fill" d="M13.5 2c.7 3.2-2.6 4.3-2.6 7.4 0 1.2.7 2.1 1.7 2.5-.2-1.2.5-2.4 1.4-3-.2 1.4.9 1.8 1.4 2.8.7 1.3.3 3.4-1.4 4.3-1 .5-2.4.6-3.7-.1-2.4-1.3-3-4.2-1.6-6.4.5-.8 1.2-1.4 1.6-2.3-2.6 1-4.3 3.4-4.3 6.3 0 3.5 2.9 6.5 6.6 6.5 4 0 7-3 7-7.3 0-4.6-3-7.4-5.7-10.7z"/></symbol>
+    <symbol id="nt-i-star" viewBox="0 0 24 24"><polygon class="is-fill" points="12 2 15 9 22 9.3 16.5 14.2 18.3 21.5 12 17.5 5.7 21.5 7.5 14.2 2 9.3 9 9"/></symbol>
+    <symbol id="nt-i-medal" viewBox="0 0 24 24"><circle cx="12" cy="14" r="6"/><path d="M9 9L6 3"/><path d="M15 9l3-6"/></symbol>
+    <symbol id="nt-i-fret" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M8 6v12"/><path d="M14 6v12"/><path d="M3 10h18"/><path d="M3 14h18"/></symbol>
+    <symbol id="nt-i-note" viewBox="0 0 24 24"><path class="is-fill" d="M18.5 3.2l-8 1.6V15a4 4 0 1 0 2 3.4V8.2l4-.8z"/></symbol>
+    <symbol id="nt-i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></symbol>
+    <symbol id="nt-i-check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 6"/></symbol>
+    <symbol id="nt-i-x" viewBox="0 0 24 24"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></symbol>
+    <symbol id="nt-i-alert" viewBox="0 0 24 24"><path d="M12 3l9 16H3z"/><path d="M12 10v4"/><path d="M12 17h.01"/></symbol>
+  </svg>
+
+  <!-- ── Header ─────────────────────────────────────────── -->
+  <div class="nt-header">
+    <div class="nt-brand">
+      <div class="nt-brand-mark"><svg class="nt-ic is-fill"><use href="#nt-i-note"/></svg></div>
+      <div>
+        <h1>Note Trainer<span class="nt-version" id="nt-version"></span></h1>
+        <p class="nt-tagline">Learn the fretboard and train your ear — bite-sized games that listen.</p>
+      </div>
+    </div>
+    <div class="nt-header-right">
+      <div class="nt-global-progress" id="nt-ach-progress" title="Achievements unlocked across all games" style="display:none;">
+        <svg class="nt-ic is-fill" style="color:var(--nt-hint-edge);"><use href="#nt-i-star"/></svg>
+        <span><b id="nt-ach-count">0</b><span id="nt-ach-total">/12</span> goals</span>
+      </div>
+      <div class="nt-global-progress" id="nt-global-progress" title="Medals earned across all games">
+        <svg class="nt-ic"><use href="#nt-i-medal"/></svg>
+        <span><b id="nt-medal-count">0</b> medals</span>
+      </div>
+      <button class="nt-btn secondary" id="nt-stop" style="display:none;">
+        <svg class="nt-ic"><use href="#nt-i-exit"/></svg> Exit
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Setup: hub ────────────────────────────────────── -->
+  <div id="nt-setup" class="nt-panel">
+    <div class="nt-section-label">Choose a game</div>
+    <div class="nt-game-picker" id="nt-games"></div>
+
+    <!-- Fretboard game panel -->
+    <div class="nt-game-panel" id="nt-panel-fret">
+      <div class="nt-setup-grid" style="margin-top:14px;">
+        <label class="nt-field"><span>Instrument</span><select id="nt-instrument"></select></label>
+        <label class="nt-field"><span>Tuning</span><select id="nt-tuning"></select></label>
+        <label class="nt-field"><span>Notes</span>
+          <select id="nt-noteset">
+            <option value="natural">Naturals (A–G)</option>
+            <option value="sharps">With sharps (♯)</option>
+            <option value="flats">With flats (♭)</option>
+            <option value="chromatic">Chromatic (12 notes)</option>
+          </select>
+        </label>
+        <label class="nt-field"><span>Mode</span>
+          <select id="nt-mode">
+            <option value="relax">Relax (no timer)</option>
+            <option value="arcade">Arcade (timed + combo)</option>
+            <option value="challenge">Challenge (series + medal)</option>
+            <option value="learn">Learn (explore the fretboard)</option>
+          </select>
+        </label>
+        <label class="nt-field"><span>Microphone</span><select id="nt-mic"></select></label>
+      </div>
+
+      <div id="nt-levels-wrap" style="margin-top:14px;">
+        <div class="nt-section-label">
+          Practice on the fretboard <span>(or configure freely above)</span>
+        </div>
+        <div class="nt-levels" id="nt-levels"></div>
+        <div id="nt-drill" class="nt-drill" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- Ear game panel -->
+    <div class="nt-game-panel" id="nt-panel-ear">
+      <div class="nt-ear-setup" style="margin-top:14px;">
+        <div class="nt-section-label">Difficulty <span>(change anytime)</span></div>
+        <div class="nt-ear-diff" id="nt-ear-diff">
+          <button type="button" class="nt-seg" data-tier="easy" title="3 notes — C E G">Easy</button>
+          <button type="button" class="nt-seg" data-tier="medium" title="Major scale — 7 notes">Medium</button>
+          <button type="button" class="nt-seg" data-tier="hard" title="All 12 notes">Hard</button>
+        </div>
+        <div class="nt-section-label" style="margin-top:4px;">Answer with <span>(note name or interval)</span></div>
+        <div class="nt-ear-diff" id="nt-ear-mode">
+          <button type="button" class="nt-seg" data-mode="note" title="Name the letter of the note you heard">Note</button>
+          <button type="button" class="nt-seg" data-mode="interval" title="Name the distance from the home note — the real theory skill">Interval</button>
+        </div>
+        <label class="nt-toggle" for="nt-ear-use-home">
+          <input type="checkbox" id="nt-ear-use-home" checked>
+          <span class="nt-toggle-track"><span class="nt-toggle-thumb"></span></span>
+          <span class="nt-toggle-text">
+            <span class="nt-toggle-title">Play C as reference</span>
+            <span class="nt-toggle-desc">Sound the home note before each mystery note. Turn off for a harder challenge (pure absolute pitch).</span>
+          </span>
+        </label>
+        <p class="nt-ear-intro" id="nt-ear-intro">A reference "home" note plays, then a mystery note — name what you heard from the buttons. Ten rounds per session, with streaks and a final medal.</p>
+        <div class="nt-ear-mastery" id="nt-ear-mastery" style="display:none;"></div>
+      </div>
+    </div>
+
+    <div class="nt-start-row">
+      <button class="nt-btn" id="nt-start"><svg class="nt-ic is-fill"><use href="#nt-i-play"/></svg> <span id="nt-start-label">Start</span></button>
+      <span id="nt-setup-hint" class="nt-setup-hint"></span>
+    </div>
+    <div id="nt-mic-error"></div>
+  </div>
+
+  <!-- ── Play: fretboard ──────────────────────────────── -->
+  <div id="nt-play">
+    <div class="nt-panel">
+      <div class="nt-hud">
+        <div class="nt-prompt">
+          <div class="nt-prompt-lead" id="nt-prompt-lead">Play</div>
+          <div class="nt-note" id="nt-prompt-note">—</div>
+        </div>
+        <div class="nt-stat" id="nt-score-wrap"><div class="nt-stat-val" id="nt-score">0</div><div class="nt-stat-lbl">Points</div></div>
+        <div class="nt-stat combo" id="nt-combo-wrap"><div class="nt-stat-val" id="nt-combo">0</div><div class="nt-stat-lbl">Combo</div></div>
+        <div class="nt-stat" id="nt-timer-wrap"><div class="nt-stat-val" id="nt-timer">0.0</div><div class="nt-stat-lbl">Time</div></div>
+        <div class="nt-stat" id="nt-progress-wrap"><div class="nt-stat-val" id="nt-progress">0/0</div><div class="nt-stat-lbl">Progress</div></div>
+      </div>
+      <div class="nt-detected" id="nt-detected">Listening…</div>
+    </div>
+
+    <div class="nt-panel" style="padding:14px;">
+      <div id="nt-fretboard"></div>
+    </div>
+
+    <div class="nt-feedback" id="nt-feedback"></div>
+  </div>
+
+  <!-- ── Play: ear training ───────────────────────────── -->
+  <div id="nt-ear">
+    <div class="nt-panel">
+      <div class="nt-hud" style="justify-content:center;">
+        <div class="nt-stat"><div class="nt-stat-val" id="nt-ear-score">0</div><div class="nt-stat-lbl">Points</div></div>
+        <div class="nt-stat combo"><div class="nt-stat-val" id="nt-ear-streak">x0</div><div class="nt-stat-lbl">Streak</div></div>
+        <div class="nt-stat"><div class="nt-stat-val" id="nt-ear-round">0/0</div><div class="nt-stat-lbl">Round</div></div>
+      </div>
+    </div>
+
+    <div class="nt-panel nt-ear-stage">
+      <div class="nt-ear-home" id="nt-ear-home-wrap">
+        <button class="nt-btn secondary" id="nt-ear-home-btn"><svg class="nt-ic"><use href="#nt-i-home"/></svg> Hear home note <b id="nt-ear-root">C</b></button>
+      </div>
+
+      <div class="nt-ear-viz" id="nt-ear-viz">
+        <div class="nt-viz-ring"></div>
+        <div class="nt-viz-ring"></div>
+        <div class="nt-viz-ring"></div>
+        <div class="nt-viz-core"><svg class="nt-ic is-fill"><use href="#nt-i-note"/></svg></div>
+      </div>
+
+      <button class="nt-btn" id="nt-ear-replay"><svg class="nt-ic"><use href="#nt-i-replay"/></svg> Replay the note</button>
+
+      <div class="nt-ear-ask">Which note did you hear?</div>
+      <div class="nt-ear-choices" id="nt-ear-choices"></div>
+      <div class="nt-feedback" id="nt-ear-feedback" style="justify-content:center;"></div>
+      <div class="nt-ear-theory" id="nt-ear-theory" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- ── Results ─────────────────────────────────────── -->
+  <div class="nt-results" id="nt-results">
+    <div class="nt-panel nt-results-card">
+      <div class="nt-medal" id="nt-medal"></div>
+      <h2 id="nt-results-title">Session complete</h2>
+      <div class="nt-results-stats">
+        <div class="nt-stat"><div class="nt-stat-val" id="nt-res-score">0</div><div class="nt-stat-lbl">Points</div></div>
+        <div class="nt-stat"><div class="nt-stat-val" id="nt-res-acc">0%</div><div class="nt-stat-lbl">Accuracy</div></div>
+        <div class="nt-stat"><div class="nt-stat-val" id="nt-res-combo">0</div><div class="nt-stat-lbl">Best combo</div></div>
+      </div>
+      <div id="nt-res-msg" class="nt-results-msg"></div>
+      <div class="nt-results-actions">
+        <button class="nt-btn secondary" id="nt-res-close">Close</button>
+        <button class="nt-btn" id="nt-res-again"><svg class="nt-ic is-fill"><use href="#nt-i-play"/></svg> Play again</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Toasts (achievement unlocks) ─────────────────── -->
+  <div class="nt-toasts" id="nt-toasts" aria-live="polite"></div>
+</div>

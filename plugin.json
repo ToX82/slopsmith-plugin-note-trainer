@@ -1,0 +1,11 @@
+{
+  "id": "note-trainer",
+  "name": "Note Trainer",
+  "version": "0.1.0",
+  "license": "MIT",
+  "nav": { "label": "Note Trainer", "screen": "note-trainer" },
+  "screen": "screen.html",
+  "script": "screen.js",
+  "settings": { "html": "settings.html" },
+  "routes": "routes.py"
+}
