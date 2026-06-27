@@ -11,6 +11,9 @@ It reuses Slopsmith's pitch-detection pipeline (the **YIN** algorithm running in
 Worker, fed by the desktop's JUCE audio bridge, with a browser-microphone fallback),
 so detection is fast and works for both **guitar and bass**.
 
+<img width="1902" height="581" alt="image" src="https://github.com/user-attachments/assets/54e869fa-c17b-42f0-a397-438baf0e9416" />
+
+
 ## Why it's different
 
 - **You play, it listens.** Real notes from a real instrument — not a multiple-choice quiz.
