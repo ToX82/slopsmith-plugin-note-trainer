@@ -8,10 +8,12 @@ mastery stats) under the host-provided config_dir.
 """
 
 import json
+import os
+import threading
 from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import Response
+from fastapi.responses import JSONResponse, Response
 
 # Open-string frequencies (Hz) per instrument/tuning. Mirrors the tuner plugin's
 # table so a player sees the same tunings across plugins. The open-string freqs
@@ -71,7 +73,13 @@ def setup(app: FastAPI, context: dict):
     _workers_dir = Path(__file__).parent / "workers"
     _levels_file = Path(__file__).parent / "data" / "levels.json"
 
-    def _read() -> dict:
+    # Serialize the read-modify-write of the config file. Two near-simultaneous
+    # saves (the frontend sends progress in several patches) would otherwise each
+    # read the file, merge their own keys, and rewrite the whole thing — the last
+    # writer clobbering the other's patch (lost update).
+    _cfg_lock = threading.Lock()
+
+    def _read_file() -> dict:
         cfg = dict(_DEFAULT_CONFIG)
         if config_file.exists():
             try:
@@ -82,14 +90,23 @@ def setup(app: FastAPI, context: dict):
                 pass
         return cfg
 
+    def _read() -> dict:
+        with _cfg_lock:
+            return _read_file()
+
     def _write(patch: dict) -> None:
-        config_dir.mkdir(parents=True, exist_ok=True)
-        current = _read()
-        # Only persist known keys; ignore anything else the client sends.
-        for key in _DEFAULT_CONFIG:
-            if key in patch:
-                current[key] = patch[key]
-        config_file.write_text(json.dumps(current, indent=2), encoding="utf-8")
+        with _cfg_lock:
+            config_dir.mkdir(parents=True, exist_ok=True)
+            current = _read_file()
+            # Only persist known keys; ignore anything else the client sends.
+            for key in _DEFAULT_CONFIG:
+                if key in patch:
+                    current[key] = patch[key]
+            # Atomic write: a crash mid-write can't leave a truncated/corrupt
+            # config (write to a temp file, then replace in one step).
+            tmp = config_file.with_suffix(".json.tmp")
+            tmp.write_text(json.dumps(current, indent=2), encoding="utf-8")
+            os.replace(tmp, config_file)
 
     def _serve_js_from(base_dir: Path, filename: str) -> Response:
         target = (base_dir / filename).resolve()
@@ -127,7 +144,10 @@ def setup(app: FastAPI, context: dict):
 
     @app.post("/api/plugins/note-trainer/config")
     async def set_config(req: Request):
-        body = await req.json()
+        try:
+            body = await req.json()
+        except Exception:
+            return JSONResponse({"error": "invalid JSON"}, status_code=400)
         if isinstance(body, dict):
             _write(body)
         return {"ok": True}

@@ -90,7 +90,7 @@
     fetch(API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ bestScores: {}, medals: {}, levelStrings: {}, stats: {}, achievements: [], lifetime: { correct: 0, wrong: 0, sessions: 0 } }),
+      body: JSON.stringify({ bestScores: {}, medals: {}, levelStrings: {}, stats: {}, earStats: {}, achievements: [], lifetime: { correct: 0, wrong: 0, sessions: 0 } }),
     }).then(() => flash('Progress reset')).catch(() => {});
   });
 })();

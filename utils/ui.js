@@ -186,10 +186,17 @@
             }, 3800);
         }
 
+        // Release the feedback-fx AudioContext. Browsers cap live AudioContexts
+        // (~6 in Chrome), so a context leaked per screen mount eventually makes
+        // `new AudioContext()` throw and silences all fx. Called from teardown.
+        function closeFx() {
+            if (_fxCtx) { try { _fxCtx.close(); } catch (_) {} _fxCtx = null; }
+        }
+
         return {
             ding, buzz, playNoteTone, setPrompt, setDetected, setScore, setCombo, setTimer,
             setProgress, showStat, feedback, showMicError, clearMicError,
-            showResults, hideResults, toast, $,
+            showResults, hideResults, toast, $, closeFx,
         };
     }
 
