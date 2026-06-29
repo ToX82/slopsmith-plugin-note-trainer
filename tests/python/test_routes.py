@@ -74,6 +74,22 @@ class TestConfigPersistence:
         assert body["earStats"]["4"] == {"correct": 3, "wrong": 2}
         assert body["earUseHome"] is False
 
+    def test_malformed_json_body_returns_400_not_500(self, client):
+        # A non-JSON body must be a clean 400, not an unhandled 500 from req.json().
+        r = client.post(
+            "/api/plugins/note-trainer/config",
+            data="not json {{",
+            headers={"Content-Type": "application/json"},
+        )
+        assert r.status_code == 400
+
+    def test_write_is_atomic_and_leaves_no_temp_file(self, client, config_dir):
+        # Atomic write (tmp + os.replace): the on-disk file is always valid JSON
+        # and no .tmp artifact is left behind.
+        client.post("/api/plugins/note-trainer/config", json={"unlockedLevel": 7})
+        assert json.loads((config_dir / "note-trainer.json").read_text())["unlockedLevel"] == 7
+        assert not list(config_dir.glob("*.tmp"))
+
 
 # ── Tunings & levels ──────────────────────────────────────────────────────────
 

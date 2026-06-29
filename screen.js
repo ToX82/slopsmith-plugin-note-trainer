@@ -6,8 +6,13 @@
     const STORAGE_KEY = 'slopsmith_note_trainer_settings';
     const API = '/api/plugins/note-trainer';
 
-    // ── Script loader (idempotent) ────────────────────────────────────
-    const _loaded = new Set();
+    // Persistent namespace so a re-evaluation of this script (the host re-evals
+    // plugin scripts on reload) reuses the same state instead of re-injecting
+    // <script> tags, re-registering the global screen:changed listener, etc.
+    const _NT = (window.__noteTrainer = window.__noteTrainer || {});
+
+    // ── Script loader (idempotent across re-evals) ────────────────────
+    const _loaded = (_NT.loaded = _NT.loaded || new Set());
     function _loadScript(url) {
         if (_loaded.has(url)) return Promise.resolve();
         return new Promise((resolve, reject) => {
@@ -62,15 +67,23 @@
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S.mic)); } catch (_) {}
     }
 
-    async function saveProgress(patch) {
-        try {
-            await fetch(API + '/config', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(patch),
-            });
-            Object.assign(S.config, patch);
-        } catch (e) { console.warn('Note Trainer: save failed', e); }
+    // Persist a progress patch. Serialized through a single chain so two saves
+    // fired back-to-back (e.g. finishEar() then recordSession(), each sending a
+    // different subset of keys) can't race the server's read-merge-rewrite and
+    // clobber each other's patch — the next POST starts only after the previous
+    // one has fully landed.
+    function saveProgress(patch) {
+        _NT.saveChain = (_NT.saveChain || Promise.resolve()).then(async () => {
+            try {
+                await fetch(API + '/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(patch),
+                });
+                Object.assign(S.config, patch);
+            } catch (e) { console.warn('Note Trainer: save failed', e); }
+        });
+        return _NT.saveChain;
     }
 
     // ── Setup population ──────────────────────────────────────────────
@@ -578,6 +591,17 @@
         S.ui.hideResults();
         if (S.config) refreshSelection();
     }
+
+    // Release everything that must not outlive the screen: the audio pipeline
+    // (mic + desktop engine) and the feedback-fx AudioContext. Stored on the
+    // persistent namespace so the once-registered screen:changed listener always
+    // calls the CURRENT instance's teardown after a re-eval.
+    function teardown() {
+        if (S.running) stop();
+        else if (window._noteTrainerAudio) window._noteTrainerAudio.stop();
+        if (S.ui && S.ui.closeFx) S.ui.closeFx();
+    }
+    _NT.teardown = teardown;
 
     function startTimer() {
         stopTimer();
@@ -1188,11 +1212,24 @@
             if (S.ear) S.ui.playNoteTone(S.ear.rootFreq, 650);
         });
 
-        // Stop audio whenever we leave the Note Trainer screen.
-        if (window.slopsmith && typeof window.slopsmith.on === 'function') {
-            window.slopsmith.on('screen:changed', () => {
-                if (S.running && (!S.root || !S.root.offsetParent)) stop();
-            });
+        // Tear down audio + fx whenever we leave the Note Trainer screen.
+        // Registered exactly once on the persistent namespace (re-evals reuse it)
+        // and on whichever host bus exists — feedBack is the current name,
+        // slopsmith the legacy alias — so the mic never stays hot after a re-eval
+        // or on a host that only exposes one of the two buses. The handler is
+        // instance-independent: it invokes the latest teardown via _NT.teardown.
+        if (!_NT.cleanupBound) {
+            const bus = (window.feedBack && typeof window.feedBack.on === 'function') ? window.feedBack
+                : (window.slopsmith && typeof window.slopsmith.on === 'function') ? window.slopsmith
+                : null;
+            if (bus) {
+                bus.on('screen:changed', () => {
+                    const root = document.getElementById('note-trainer-root');
+                    // Left the screen (root unmounted, or present but hidden).
+                    if (!root || !root.offsetParent) { if (_NT.teardown) _NT.teardown(); }
+                });
+                _NT.cleanupBound = true;
+            }
         }
     }
 

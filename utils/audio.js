@@ -39,6 +39,12 @@
     let _bridgeInterval = null;
     let _startGen = 0;
     let _frameSentAt = 0;
+    // Track whether WE started the desktop JUCE engine, plus the audio handle to
+    // stop it with, so teardown can release the mic instead of leaving it hot.
+    // Only stop an engine this plugin started — another plugin (e.g. note_detect)
+    // may own a session we must not tear down.
+    let _weStartedEngine = false;
+    let _engineAudio = null;
 
     function _octaveFold(freq, ref) {
         if (!ref || freq <= 0) return freq;
@@ -110,6 +116,9 @@
             if (!running && typeof desktop.audio.startAudio === 'function') {
                 await desktop.audio.startAudio();
                 started = true;
+                // Remember we own this engine start so _doStop() can release it.
+                _weStartedEngine = true;
+                _engineAudio = desktop.audio;
             }
         } catch (e) {
             console.warn('[note-trainer] bridge startAudio failed:', e && e.message ? e.message : e);
@@ -118,6 +127,8 @@
             if (started && typeof desktop.audio.stopAudio === 'function') {
                 try { desktop.audio.stopAudio(); } catch (_) {}
             }
+            _weStartedEngine = false;
+            _engineAudio = null;
             return false;
         }
 
@@ -237,6 +248,14 @@
 
     function _doStop() {
         _startGen++;
+        // Release the desktop JUCE engine if WE started it — otherwise the mic
+        // stays hot and the audio thread keeps spinning after the game stops or
+        // the user leaves the screen. Never stop an engine another plugin owns.
+        if (_weStartedEngine && _engineAudio && typeof _engineAudio.stopAudio === 'function') {
+            try { _engineAudio.stopAudio(); } catch (_) {}
+        }
+        _weStartedEngine = false;
+        _engineAudio = null;
         if (_bridgeInterval) { clearInterval(_bridgeInterval); _bridgeInterval = null; }
         _usingDesktopBridge = false;
         if (_detectInterval) { clearInterval(_detectInterval); _detectInterval = null; }
