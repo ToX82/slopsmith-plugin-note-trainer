@@ -52,6 +52,7 @@ _DEFAULT_CONFIG = {
     "earMode": "note",          # ear-training answer style: note | interval
     "earUseHome": True,         # play the home reference note before each target
     "maxFret": 12,
+    "flipStrings": False,       # draw the lowest string on top instead of at the bottom
     "unlockedLevel": 1,         # legacy: all levels are now unlocked from the start
     "bestScores": {},           # levelId -> best score
     "medals": {},               # levelId -> "gold" | "silver" | "bronze" (best earned)
