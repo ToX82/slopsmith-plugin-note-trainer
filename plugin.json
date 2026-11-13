@@ -1,7 +1,7 @@
 {
   "id": "note-trainer",
   "name": "Note Trainer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "license": "MIT",
   "nav": { "label": "Note Trainer", "screen": "note-trainer" },
   "screen": "screen.html",

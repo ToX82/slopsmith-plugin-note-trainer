@@ -1170,7 +1170,7 @@
         await loadData();
 
         const verEl = S.ui.$('nt-version');
-        if (verEl) verEl.textContent = ' v0.1.0';
+        if (verEl) verEl.textContent = ' v0.2.0';
 
         populateInstruments();
         await populateMics();
@@ -1262,7 +1262,79 @@
             .catch(e => console.error('Note Trainer: boot failed', e));
     }
 
+    // ── Sidebar quick-access button ───────────────────────────────────
+    // The host only gives its own bundled plugins a sidebar entry; everything
+    // else sits behind "Plugins". This adds a "Note Trainer" entry to the HOME
+    // group, styled like the host's own items. The host rebuilds #v3-nav
+    // (renderSidebar sets innerHTML), so an observer puts the entry back.
+    const NAV_SLOT_ID = 'v3-nav-note-trainer';
+    const NAV_SCREEN_ID = 'plugin-note-trainer';
+
+    function syncSidebarNav() {
+        const link = document.querySelector('#' + NAV_SLOT_ID + ' a');
+        if (!link) return;
+        const screen = document.getElementById(NAV_SCREEN_ID);
+        const on = !!(screen && screen.classList.contains('active'));
+        link.classList.toggle('bg-fb-card', on);
+        link.classList.toggle('text-fb-text', on);
+        link.classList.toggle('text-fb-textDim', !on);
+    }
+
+    function ensureSidebarNav() {
+        const nav = document.getElementById('v3-nav');
+        if (!nav) return false;
+        if (document.getElementById(NAV_SLOT_ID)) { syncSidebarNav(); return true; }
+        // Below "Virtuoso - Practice" when that's there, else below FeedBarcade,
+        // else at the end of the first group.
+        const anchor = document.getElementById('v3-nav-virtuoso')
+            || nav.querySelector('[data-v3-nav="feedbarcade"]')
+            || nav.querySelector('.space-y-0\\.5 > :last-child');
+        if (!anchor) return false;
+        const slot = document.createElement('div');
+        slot.id = NAV_SLOT_ID;
+        slot.innerHTML =
+            '<a href="#/note-trainer" data-note-trainer-nav title="Note Trainer" ' +
+            'class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-fb-textDim ' +
+            'hover:text-fb-text hover:bg-fb-card/50 transition-colors">' +
+            '<svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true">' +
+            '<path stroke-linecap="round" stroke-linejoin="round" d="M9 18V5l12-2v13M9 18a3 3 0 11-6 0 3 3 0 016 0zm12-2a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>' +
+            '<span class="truncate v3-nav-label">Note Trainer</span></a>';
+        slot.querySelector('a').addEventListener('click', (e) => {
+            e.preventDefault();
+            if (typeof window.showScreen !== 'function') return;
+            // Same guard as the host: a plugin screen may not be injected yet.
+            window.showScreen(document.getElementById(NAV_SCREEN_ID) ? NAV_SCREEN_ID : 'v3-plugins');
+        });
+        anchor.insertAdjacentElement('afterend', slot);
+        syncSidebarNav();
+        return true;
+    }
+
+    function bootSidebarNav() {
+        // Always point at this evaluation's functions; listeners are bound once.
+        _NT.ensureSidebarNav = ensureSidebarNav;
+        _NT.syncSidebarNav = syncSidebarNav;
+        if (_NT.navBound) { ensureSidebarNav(); return; }
+        let tries = 0;
+        const timer = setInterval(() => {
+            const nav = document.getElementById('v3-nav');
+            if (!nav) { if (++tries > 80) clearInterval(timer); return; }
+            clearInterval(timer);
+            _NT.navBound = true;
+            ensureSidebarNav();
+            new MutationObserver(() => { if (_NT.ensureSidebarNav) _NT.ensureSidebarNav(); })
+                .observe(nav, { childList: true, subtree: true });
+            const bus = (window.feedBack && typeof window.feedBack.on === 'function') ? window.feedBack
+                : (window.slopsmith && typeof window.slopsmith.on === 'function') ? window.slopsmith
+                : null;
+            // After the host's own handler has restyled its items.
+            if (bus) bus.on('screen:changed', () => setTimeout(() => { if (_NT.syncSidebarNav) _NT.syncSidebarNav(); }, 0));
+        }, 250);
+    }
+
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true });
     else boot();
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bootSidebarNav, { once: true });
+    else bootSidebarNav();
     console.log('Note Trainer plugin loaded.');
 })();
