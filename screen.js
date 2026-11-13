@@ -309,8 +309,11 @@
         const allOn = active.size === stringCount;
 
         let rows = '';
-        // Draw high string on top, lowest at the bottom (standard orientation).
-        for (let i = stringCount - 1; i >= 0; i--) {
+        // Same order as the fretboard: high string on top and lowest at the
+        // bottom (standard orientation), or the reverse with "flip strings" on.
+        const flip = !!(S.config && S.config.flipStrings);
+        for (let n = 0; n < stringCount; n++) {
+            const i = flip ? n : stringCount - 1 - n;
             rows += '<div class="nt-fb-row' + (active.has(i) ? ' on' : '') + '" data-str="' + i + '">'
                 + '<span class="nt-fb-name">' + shortStringName(openMidi[i]) + '</span>'
                 + '<span class="nt-fb-wire"><span class="nt-fb-dot"></span></span>'
@@ -516,7 +519,7 @@
         S.maxFret = (S.config && S.config.maxFret) || 12;
 
         // Render the fretboard.
-        S.fb.render({ openMidi: S.openMidi, maxFret: S.maxFret });
+        S.fb.render({ openMidi: S.openMidi, maxFret: S.maxFret, flip: !!(S.config && S.config.flipStrings) });
 
         // Persist the chosen setup.
         saveProgress({ lastInstrument: inst, lastTuning: tuningName, lastNoteSet: noteSet, lastMode: S.mode });
@@ -1156,12 +1159,21 @@
         S.config = Object.assign({
             bestScores: {}, medals: {}, levelStrings: {}, stats: {}, earStats: {},
             achievements: [], lifetime: { correct: 0, wrong: 0, sessions: 0 },
-            maxFret: 12, lastEarTier: 'easy', earMode: 'note', earUseHome: true,
+            maxFret: 12, flipStrings: false, lastEarTier: 'easy', earMode: 'note', earUseHome: true,
         }, cfg);
         S.tunings = tun.tunings || {};
         S.levels = lvl.levels || [];
         S.levelStrings = Object.assign({}, S.config.levelStrings);
     }
+
+    // Called by the settings panel after it saves, so a changed option reaches
+    // this already-loaded screen without a reload. The fretboard itself picks
+    // the new values up the next time a session starts and redraws it.
+    _NT.applyConfig = function (patch) {
+        if (!S.config || !patch) return;
+        Object.assign(S.config, patch);
+        try { renderDrill(); } catch (e) { /* screen not built yet */ }
+    };
 
     async function init() {
         S.ui = window._noteTrainerUI(S.root);
@@ -1170,7 +1182,7 @@
         await loadData();
 
         const verEl = S.ui.$('nt-version');
-        if (verEl) verEl.textContent = ' v0.2.0';
+        if (verEl) verEl.textContent = ' v0.3.0';
 
         populateInstruments();
         await populateMics();

@@ -20,6 +20,13 @@ Note Trainer adds its own **Note Trainer** button to the sidebar's HOME group
 (below *Virtuoso - Practice*), so it's one click away instead of sitting behind
 the Plugins page.
 
+## String order
+
+By default the fretboard is drawn like tablature, with the lowest string at
+the bottom. Turn on **Flip the strings** in the plugin's settings to draw the
+lowest string on top instead, the way you see your own instrument when you
+look down at it. The "Practice strings" picker follows the same order.
+
 ## Why it's different
 
 - **You play, it listens.** Real notes from a real instrument — not a multiple-choice quiz.

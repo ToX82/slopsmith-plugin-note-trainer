@@ -25,6 +25,9 @@
       font: inherit; font-size: 13px;
     }
     .note-trainer-settings select:focus { outline: none; border-color: var(--nts-accent); box-shadow: 0 0 0 3px rgba(240,180,41,0.28); }
+    .note-trainer-settings .nts-check-row { display: flex; align-items: center; gap: 10px; }
+    .note-trainer-settings .nts-check-row > span { font-size: 13px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--nts-text); }
+    .note-trainer-settings .nts-check-row input { width: 18px; height: 18px; accent-color: var(--nts-accent); }
     .note-trainer-settings .nts-actions { display: flex; gap: 10px; align-items: center; }
     .note-trainer-settings button {
       min-height: 38px; padding: 0 16px; border-radius: 8px; cursor: pointer;
@@ -55,6 +58,16 @@
     </select>
   </label>
 
+  <label class="nts-card">
+    <span>String order</span>
+    <span class="nts-check-row">
+      <input id="note-trainer-flipstrings" type="checkbox">
+      <span>Flip the strings: lowest string on top</span>
+    </span>
+    <p>Off shows the neck like tablature, with the lowest string at the bottom.
+      On shows it the way you see your own instrument when you look down at it.</p>
+  </label>
+
   <div class="nts-actions">
     <button id="note-trainer-reset" type="button" class="nts-danger">Reset progress</button>
     <span id="note-trainer-settings-status" class="nts-status"></span>
@@ -65,6 +78,7 @@
 (function () {
   const API = '/api/plugins/note-trainer/config';
   const maxFretEl = document.getElementById('note-trainer-maxfret');
+  const flipEl = document.getElementById('note-trainer-flipstrings');
   const resetEl = document.getElementById('note-trainer-reset');
   const statusEl = document.getElementById('note-trainer-settings-status');
 
@@ -76,14 +90,30 @@
 
   fetch(API).then(r => r.json()).then(cfg => {
     if (maxFretEl && cfg && cfg.maxFret) maxFretEl.value = String(cfg.maxFret);
+    if (flipEl && cfg) flipEl.checked = !!cfg.flipStrings;
   }).catch(() => {});
+
+  // Hand a saved option to the already-loaded trainer screen, if there is one.
+  function applyLive(patch) {
+    const nt = window.__noteTrainer;
+    if (nt && typeof nt.applyConfig === 'function') nt.applyConfig(patch);
+  }
+
+  if (flipEl) flipEl.addEventListener('change', () => {
+    const patch = { flipStrings: flipEl.checked };
+    fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(patch),
+    }).then(() => { applyLive(patch); flash('Saved'); }).catch(() => {});
+  });
 
   if (maxFretEl) maxFretEl.addEventListener('change', () => {
     fetch(API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ maxFret: parseInt(maxFretEl.value, 10) }),
-    }).then(() => flash('Saved')).catch(() => {});
+    }).then(() => { applyLive({ maxFret: parseInt(maxFretEl.value, 10) }); flash('Saved'); }).catch(() => {});
   });
 
   if (resetEl) resetEl.addEventListener('click', () => {
