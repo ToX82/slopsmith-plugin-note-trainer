@@ -4,10 +4,12 @@
  * Vanilla SVG (no deps), scoped under .note-trainer-root. One instance per
  * mounted screen. Coordinate space is fixed and the <svg> scales to its
  * container via viewBox. String index 0 is the LOWEST-pitched string and is
- * drawn at the bottom (conventional guitar/bass orientation).
+ * drawn at the bottom (conventional tab orientation), or on top when the
+ * `flip` render option is set (the neck as you see it looking down at your
+ * own instrument). Only the drawing flips; string indices never change.
  *
  *   const fb = window._noteTrainerFretboard(containerEl);
- *   fb.render({ openMidi:[...], maxFret:12 });
+ *   fb.render({ openMidi:[...], maxFret:12, flip:false });
  *   fb.highlightString(0);            // glow the target string
  *   fb.showTarget(0, [8, 20]);        // dim dots at correct frets (hint/reveal)
  *   fb.flash(0, 8, 'ok' | 'err');     // pulse a fret
@@ -40,9 +42,12 @@
         let openMidi = [];
         let maxFret = 12;
         let stringCount = 6;
+        let flip = false;     // true = lowest string drawn on top
         const overlay = [];   // transient nodes (targets/flashes/detected)
 
-        function stringY(i) { return TOP + (stringCount - 1 - i) * SH; }
+        // Row (0 = top) a string is drawn on.
+        function rowOf(i) { return flip ? i : stringCount - 1 - i; }
+        function stringY(i) { return TOP + rowOf(i) * SH; }
         function fretCenterX(f) { return f === 0 ? LEFT - 30 : LEFT + (f - 0.5) * FW; }
         function fretLineX(f) { return LEFT + f * FW; }
 
@@ -55,6 +60,7 @@
             openMidi = (opts.openMidi || []).slice();
             maxFret = opts.maxFret || 12;
             stringCount = openMidi.length || 6;
+            flip = !!opts.flip;
             overlay.length = 0;
 
             const width = LEFT + maxFret * FW + RIGHT;
@@ -90,8 +96,8 @@
             // Fret wires (fret 0 = nut, drawn thicker).
             for (let f = 0; f <= maxFret; f++) {
                 svg.appendChild(el('line', {
-                    x1: fretLineX(f), y1: stringY(stringCount - 1) - SH / 2,
-                    x2: fretLineX(f), y2: stringY(0) + SH / 2,
+                    x1: fretLineX(f), y1: TOP - SH / 2,
+                    x2: fretLineX(f), y2: TOP + (stringCount - 1) * SH + SH / 2,
                     class: f === 0 ? 'note-trainer-fb-nut' : 'note-trainer-fb-fret',
                 }));
             }
@@ -189,7 +195,7 @@
             svg.querySelectorAll('[data-strlabel]').forEach(l => l.classList.remove('is-target'));
         }
 
-        return { render, highlightString, clearHighlight, showTarget, flash, markDetected, clear };
+        return { rowOf, render, highlightString, clearHighlight, showTarget, flash, markDetected, clear };
     }
 
     if (typeof window !== 'undefined') window._noteTrainerFretboard = create;

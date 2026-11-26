@@ -21,6 +21,11 @@ class TestConfigDefaults:
         assert body["achievements"] == []
         assert body["lifetime"] == {"correct": 0, "wrong": 0, "sessions": 0}
 
+    def test_flip_strings_defaults_off_and_round_trips(self, client):
+        assert client.get("/api/plugins/note-trainer/config").json()["flipStrings"] is False
+        client.post("/api/plugins/note-trainer/config", json={"flipStrings": True})
+        assert client.get("/api/plugins/note-trainer/config").json()["flipStrings"] is True
+
     def test_earmode_and_achievements_round_trip(self, client):
         client.post("/api/plugins/note-trainer/config", json={
             "earMode": "interval",
